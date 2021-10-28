@@ -1,0 +1,125 @@
+---
+title: "Assignment 1"
+author: "Grace Levin, Sam Lewis, Naomi Robalino"
+date: "10/25/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+
+## 1. Research Question
+
+How well does the increase in rent prices predict the number of people experiencing homelessness in the United States on the state level? 
+
+## 2. Prior Research
+
+At first, we wanted to know the relationship between types of affordable housing and homelessness rates. However, according to Petry et. al. (2021) people at high risk of experiencing homelessness were likely to re-enter homelessness regardless of their housing type; they found those at high risk of experiencing homeslessness depended on their structural vulnerabilities. We instead decided to focus on larger scale forces such as the housing market and median rent prices in order to see how it affects the homelessness rate in the U.S. at the state level. Additionally, according to the U.S. Interagency Council on Homelessness (2021), households with higher levels of housing stability and access to housing affordability have a lower likelihood of entering homelessness, so we decided to look at the percent increase in rents as well. 
+
+## 3. Data
+
+The sample set for this study is all states in the United States. The analysis will include the following variables:
+
+Categorical:
+
+* Region the U.S. state in is (U.S (American Community Survey 2019) [region]
+* Majority party in the state legislature ("State Legislative Elections, 2021 - Ballotpedia" 2021) [party_stateleg]
+
+Continuous:
+
+* Number of people experience poverty (American Community Survey 2019) 
+[povertyE]
+* Median gross rent (American Community Survey 2019) [median_rent]
+* Percent Increase in rents since 2001 (American Community Survey 2019) [perincrease_rent]
+* Total number of people experiencing homelessness (HUD 2018 Annual Homelessness Assessment Report) [homelessness]
+* Total number of beds available in homeless shelters (PIT and HIC Data Since 
+2007, 2021) [bed_counts_per_state]
+
+This dataset includes 50 states and the District of Columbia. 
+
+
+
+## 4. References
+
+"National And State Housing Fact Sheets & Data". 2019. Center On Budget And Policy Priorities. https://www.cbpp.org/research/housing/national-and-state-housing-fact-sheets-data.
+
+Petry, Laura, Chyna Hill, Phebe Vayanos, Eric Rice, Hsun-Ta Hsu, and Matthew Morton. “Associations Between the Vulnerability Index-Service Prioritization Decision Assistance Tool and Returns to Homelessness Among Single Adults in the United States.” Cityscape 23, no. 2 (2021): 293–324. https://www.jstor.org/stable/27039964.
+
+"PIT And HIC Data Since 2007". 2021. Hudexchange.Info. https://www.hudexchange.info/resource/3031/pit-and-hic-data-since-2007/.
+
+"State Legislative Elections, 2021 - Ballotpedia". 2021. Ballotpedia. https://ballotpedia.org/State_legislative_elections,_2021.
+
+2021. Usich.Gov. https://www.usich.gov/resources/uploads/asset_library/Housing-Affordability-and-Stablility-Brief.pdf.
+
+United States Census Bureau. American Community Survey, 5-year estimates. 2019.
+
+
+
+## 5. Load Packages
+First we loaded the following packages:
+
+```{r}
+
+library(osmextract)
+library(tidyverse)
+library(sf)
+library(ggthemes)
+library(ggspatial)
+library(tigris)
+library(wesanderson)
+library(tidytransit)
+library(tidycensus)
+library(dplyr)
+library(stars)
+
+```
+
+## 6. Load Data
+
+Then, we imported the American Community Census data recorded in 2019 (from the year 2015-2019) and the census data
+
+```{r}
+census_api_key("32af35a06c38b3b5eaf52448f34555621ee04370", install=TRUE, overwrite = TRUE)
+readRenviron("~/.Renviron")
+
+acs_vars <- load_variables(2019, "acs1")
+```
+
+Then we loaded the state poverty levels from the 2019 ACS data.
+
+```{r}
+state_poverty <- get_acs(geography = "state",
+                         year = 2019,
+                          output = "wide",
+                          variables = c(poverty = 'B05010_002'))
+```
+
+Then, we loaded state housing facts.
+
+```{r}
+state_housing <- read_csv(file = 'statehousingfacts.csv')
+```
+
+Then we loaded bed counts per state.
+
+```{r}
+state_shelter <- read_csv(file = 'state_bed.csv') %>%
+  rename (bed_counts_per_state = beds)
+```
+
+## 7. Join Data
+
+Lastly, we joined the state poverty, state housing, state shelter.
+
+```{r}
+data <- left_join(state_poverty, state_housing, by = 'NAME') %>% 
+  left_join(state_shelter)
+
+data <- select(data, -povertyM)
+
+knitr::kable(data)
+
+```
+
