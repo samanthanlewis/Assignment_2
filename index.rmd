@@ -1,14 +1,16 @@
 ---
-title: "Assignment 1"
+title: "Assignment 1+2"
 author: "Grace Levin, Sam Lewis, Naomi Robalino"
-date: "10/25/2021"
+date: "10/28/2021"
 output: html_document
 ---
 
 ```{r setup, include=FALSE} 
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
 ```
 
+## Asignment 1
 
 ## 1. Research Question
 
@@ -73,6 +75,9 @@ library(tidytransit)
 library(tidycensus)
 library(dplyr)
 library(stars)
+library(readxl)
+library(knitr)
+library(gridExtra)
 
 ```
 
@@ -93,8 +98,23 @@ Then we loaded the state poverty levels from the 2019 ACS data.
 state_poverty <- get_acs(geography = "state",
                          year = 2019,
                           output = "wide",
-                          variables = c(poverty = 'B05010_002'))
+                          variables = c(poverty = 'B05010_002', pop = 'B01003_001'))
+  
 ```
+
+
+Then we loaded the state population from the 2019 ACS data.
+
+```{r}
+
+state_pop <- get_acs(geography = "state",
+                         year = 2019,
+                          output = "wide",
+                          variables = c(population = 'B01003_001'))
+
+```
+
+
 
 Then, we loaded state housing facts.
 
@@ -117,9 +137,115 @@ Lastly, we joined the state poverty, state housing, state shelter.
 data <- left_join(state_poverty, state_housing, by = 'NAME') %>% 
   left_join(state_shelter)
 
-data <- select(data, -povertyM)
+data <- select(data, -popM, -povertyM)
 
 knitr::kable(data)
+
+```
+
+---
+title: "Assignment 2"
+---
+
+## Calculate Continuous variables (Quartiles, SD,
+
+```{r}
+poverty_t_test <- t.test(data$povertyE)
+popE_t_test <- t.test(data$popE)
+median_rent_t_test <- t.test(data$median_rent)
+perincrease_rent_t_test <- t.test(data$perincrease_rent)
+homelessness_t_test <- t.test(data$homelessness)
+bed_counts_per_state_t_test <- t.test(data$bed_counts_per_state)
+
+poverty_quartiles <- quantile(data$povertyE, na.rm = TRUE)
+popE_quartiles <- quantile(data$popE, na.rm = TRUE)
+median_rent_quartiles <- quantile(data$median_rent, na.rm = TRUE)
+perincrease_rent_quartiles <- quantile(data$perincrease_rent, na.rm = TRUE)
+homelessness_quartiles <- quantile(data$homelessness, na.rm = TRUE)
+bed_counts_per_state_quartiles <- quantile(data$bed_counts_per_state, na.rm = TRUE)
+
+
+poverty_st_dev <- sd(data$povertyE, na.rm = TRUE)
+popE_st_dev <- sd(data$popE, na.rm = TRUE)
+median_rent_st_dev <- sd(data$median_rent, na.rm = TRUE)
+perincrease_rent_st_dev <- sd(data$perincrease_rent, na.rm = TRUE)
+homelessness_st_dev <- sd(data$homelessness, na.rm = TRUE)
+bed_counts_per_state_st_dev <- sd(data$bed_counts_per_state, na.rm = TRUE)
+
+
+```
+
+
+```{r}
+
+poverty_hist <- ggplot(data) +
+  geom_histogram(aes(x = povertyE),
+                 bins = 30)
+
+popE_hist <- ggplot(data) +
+  geom_histogram(aes(x = popE),
+                 bins = 30)
+
+median_rent_hist <- ggplot(data) +
+  geom_histogram(aes(x = median_rent),
+                 bins = 30)
+
+perincrease_rent_hist <- ggplot(data) +
+  geom_histogram(aes(x = perincrease_rent),
+                 bins = 30)
+
+homelessness_hist <- ggplot(data) +
+  geom_histogram(aes(x = homelessness),
+                 bins = 30)
+
+bed_counts_per_state_hist <- ggplot(data) +
+  geom_histogram(aes(x = bed_counts_per_state),
+                 bins = 30)
+
+```
+
+
+## Poverty
+```{r}
+
+poverty_t_test 
+poverty_st_dev
+poverty_hist
+
+```
+## Population
+```{r}
+popE_t_test 
+popE_st_dev
+popE_hist
+```
+## Median Rent
+```{r}
+median_rent_t_test 
+median_rent_st_dev
+median_rent_hist
+```
+
+## Percent Increase in Rent
+```{r}
+perincrease_rent_t_test 
+perincrease_rent_st_dev
+perincrease_rent_hist
+```
+
+## I
+```{r}
+homelessness_t_test 
+homelessness_st_dev
+homelessness_hist
+```
+
+
+## Homeless beds
+```{r}
+bed_counts_per_state_t_test 
+bed_counts_per_state_st_dev
+bed_counts_per_state_hist
 
 ```
 
